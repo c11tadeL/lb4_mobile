@@ -7,6 +7,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.example.lb4.data.model.CategoryEntity
 import com.example.lb4.data.model.ProductEntity
+import com.example.lb4.data.model.PromotionEntity
 
 @Composable
 fun AddCategoryDialog(
@@ -47,106 +48,6 @@ fun AddCategoryDialog(
                 enabled = name.isNotBlank() && icon.isNotBlank()
             ) {
                 Text("Додати")
-            }
-        },
-        dismissButton = {
-            TextButton(onClick = onDismiss) {
-                Text("Скасувати")
-            }
-        }
-    )
-}
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun EditProductDialog(
-    product: ProductEntity,
-    categories: List<CategoryEntity>,
-    onDismiss: () -> Unit,
-    onConfirm: (ProductEntity) -> Unit
-) {
-    var name by remember { mutableStateOf(product.name) }
-    var price by remember { mutableStateOf(product.price.toString()) }
-    var emoji by remember { mutableStateOf(product.emoji) }
-    var selectedCategoryId by remember { mutableStateOf(product.categoryId) }
-    var expanded by remember { mutableStateOf(false) }
-
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        title = { Text("Редагувати продукт") },
-        text = {
-            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                OutlinedTextField(
-                    value = name,
-                    onValueChange = { name = it },
-                    label = { Text("Назва продукту") },
-                    singleLine = true,
-                    modifier = Modifier.fillMaxWidth()
-                )
-                OutlinedTextField(
-                    value = price,
-                    onValueChange = { price = it },
-                    label = { Text("Ціна") },
-                    singleLine = true,
-                    modifier = Modifier.fillMaxWidth()
-                )
-                OutlinedTextField(
-                    value = emoji,
-                    onValueChange = { emoji = it },
-                    label = { Text("Емодзі (🍎, 🥕)") },
-                    singleLine = true,
-                    modifier = Modifier.fillMaxWidth()
-                )
-
-                ExposedDropdownMenuBox(
-                    expanded = expanded,
-                    onExpandedChange = { expanded = it }
-                ) {
-                    OutlinedTextField(
-                        value = categories.find { it.id == selectedCategoryId }?.name ?: "",
-                        onValueChange = {},
-                        readOnly = true,
-                        label = { Text("Категорія") },
-                        trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .menuAnchor()
-                    )
-                    ExposedDropdownMenu(
-                        expanded = expanded,
-                        onDismissRequest = { expanded = false }
-                    ) {
-                        categories.forEach { category ->
-                            DropdownMenuItem(
-                                text = { Text("${category.icon} ${category.name}") },
-                                onClick = {
-                                    selectedCategoryId = category.id
-                                    expanded = false
-                                }
-                            )
-                        }
-                    }
-                }
-            }
-        },
-        confirmButton = {
-            TextButton(
-                onClick = {
-                    val priceDouble = price.toDoubleOrNull()
-                    if (name.isNotBlank() && priceDouble != null && emoji.isNotBlank()) {
-                        onConfirm(
-                            product.copy(
-                                name = name,
-                                price = priceDouble,
-                                emoji = emoji,
-                                categoryId = selectedCategoryId
-                            )
-                        )
-                    }
-                },
-                enabled = name.isNotBlank() && price.toDoubleOrNull() != null && emoji.isNotBlank()
-            ) {
-                Text("Зберегти")
             }
         },
         dismissButton = {
@@ -289,6 +190,245 @@ fun AddProductDialog(
                 enabled = name.isNotBlank() && price.toDoubleOrNull() != null && emoji.isNotBlank()
             ) {
                 Text("Додати")
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) {
+                Text("Скасувати")
+            }
+        }
+    )
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun EditProductDialog(
+    product: ProductEntity,
+    categories: List<CategoryEntity>,
+    onDismiss: () -> Unit,
+    onConfirm: (ProductEntity) -> Unit
+) {
+    var name by remember { mutableStateOf(product.name) }
+    var price by remember { mutableStateOf(product.price.toString()) }
+    var emoji by remember { mutableStateOf(product.emoji) }
+    var selectedCategoryId by remember { mutableStateOf(product.categoryId) }
+    var expanded by remember { mutableStateOf(false) }
+
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text("Редагувати продукт") },
+        text = {
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                OutlinedTextField(
+                    value = name,
+                    onValueChange = { name = it },
+                    label = { Text("Назва продукту") },
+                    singleLine = true,
+                    modifier = Modifier.fillMaxWidth()
+                )
+                OutlinedTextField(
+                    value = price,
+                    onValueChange = { price = it },
+                    label = { Text("Ціна") },
+                    singleLine = true,
+                    modifier = Modifier.fillMaxWidth()
+                )
+                OutlinedTextField(
+                    value = emoji,
+                    onValueChange = { emoji = it },
+                    label = { Text("Емодзі (🍎, 🥕)") },
+                    singleLine = true,
+                    modifier = Modifier.fillMaxWidth()
+                )
+
+                ExposedDropdownMenuBox(
+                    expanded = expanded,
+                    onExpandedChange = { expanded = it }
+                ) {
+                    OutlinedTextField(
+                        value = categories.find { it.id == selectedCategoryId }?.name ?: "",
+                        onValueChange = {},
+                        readOnly = true,
+                        label = { Text("Категорія") },
+                        trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .menuAnchor()
+                    )
+                    ExposedDropdownMenu(
+                        expanded = expanded,
+                        onDismissRequest = { expanded = false }
+                    ) {
+                        categories.forEach { category ->
+                            DropdownMenuItem(
+                                text = { Text("${category.icon} ${category.name}") },
+                                onClick = {
+                                    selectedCategoryId = category.id
+                                    expanded = false
+                                }
+                            )
+                        }
+                    }
+                }
+            }
+        },
+        confirmButton = {
+            TextButton(
+                onClick = {
+                    val priceDouble = price.toDoubleOrNull()
+                    if (name.isNotBlank() && priceDouble != null && emoji.isNotBlank()) {
+                        onConfirm(
+                            product.copy(
+                                name = name,
+                                price = priceDouble,
+                                emoji = emoji,
+                                categoryId = selectedCategoryId
+                            )
+                        )
+                    }
+                },
+                enabled = name.isNotBlank() && price.toDoubleOrNull() != null && emoji.isNotBlank()
+            ) {
+                Text("Зберегти")
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) {
+                Text("Скасувати")
+            }
+        }
+    )
+}
+@Composable
+fun AddPromotionDialog(
+    onDismiss: () -> Unit,
+    onConfirm: (title: String, description: String, discount: Int, emoji: String) -> Unit
+) {
+    var title by remember { mutableStateOf("") }
+    var description by remember { mutableStateOf("") }
+    var discount by remember { mutableStateOf("") }
+    var emoji by remember { mutableStateOf("") }
+
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text("Додати акцію") },
+        text = {
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                OutlinedTextField(
+                    value = title,
+                    onValueChange = { title = it },
+                    label = { Text("Назва акції") },
+                    singleLine = true,
+                    modifier = Modifier.fillMaxWidth()
+                )
+                OutlinedTextField(
+                    value = description,
+                    onValueChange = { description = it },
+                    label = { Text("Опис") },
+                    singleLine = true,
+                    modifier = Modifier.fillMaxWidth()
+                )
+                OutlinedTextField(
+                    value = discount,
+                    onValueChange = { discount = it },
+                    label = { Text("Знижка (%)") },
+                    singleLine = true,
+                    modifier = Modifier.fillMaxWidth()
+                )
+                OutlinedTextField(
+                    value = emoji,
+                    onValueChange = { emoji = it },
+                    label = { Text("Емодзі (🔥, ⭐, 🎁)") },
+                    singleLine = true,
+                    modifier = Modifier.fillMaxWidth()
+                )
+            }
+        },
+        confirmButton = {
+            TextButton(
+                onClick = {
+                    val discountInt = discount.toIntOrNull()
+                    if (title.isNotBlank() && description.isNotBlank() && discountInt != null && emoji.isNotBlank()) {
+                        onConfirm(title, description, discountInt, emoji)
+                    }
+                },
+                enabled = title.isNotBlank() && description.isNotBlank() && discount.toIntOrNull() != null && emoji.isNotBlank()
+            ) {
+                Text("Додати")
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) {
+                Text("Скасувати")
+            }
+        }
+    )
+}
+
+@Composable
+fun EditPromotionDialog(
+    promotion: PromotionEntity,
+    onDismiss: () -> Unit,
+    onConfirm: (PromotionEntity) -> Unit
+) {
+    var title by remember { mutableStateOf(promotion.title) }
+    var description by remember { mutableStateOf(promotion.description) }
+    var discount by remember { mutableStateOf(promotion.discount.toString()) }
+    var emoji by remember { mutableStateOf(promotion.emoji) }
+
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text("Редагувати акцію") },
+        text = {
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                OutlinedTextField(
+                    value = title,
+                    onValueChange = { title = it },
+                    label = { Text("Назва акції") },
+                    singleLine = true,
+                    modifier = Modifier.fillMaxWidth()
+                )
+                OutlinedTextField(
+                    value = description,
+                    onValueChange = { description = it },
+                    label = { Text("Опис") },
+                    singleLine = true,
+                    modifier = Modifier.fillMaxWidth()
+                )
+                OutlinedTextField(
+                    value = discount,
+                    onValueChange = { discount = it },
+                    label = { Text("Знижка (%)") },
+                    singleLine = true,
+                    modifier = Modifier.fillMaxWidth()
+                )
+                OutlinedTextField(
+                    value = emoji,
+                    onValueChange = { emoji = it },
+                    label = { Text("Емодзі (🔥, ⭐, 🎁)") },
+                    singleLine = true,
+                    modifier = Modifier.fillMaxWidth()
+                )
+            }
+        },
+        confirmButton = {
+            TextButton(
+                onClick = {
+                    val discountInt = discount.toIntOrNull()
+                    if (title.isNotBlank() && description.isNotBlank() && discountInt != null && emoji.isNotBlank()) {
+                        onConfirm(
+                            promotion.copy(
+                                title = title,
+                                description = description,
+                                discount = discountInt,
+                                emoji = emoji
+                            )
+                        )
+                    }
+                },
+                enabled = title.isNotBlank() && description.isNotBlank() && discount.toIntOrNull() != null && emoji.isNotBlank()
+            ) {
+                Text("Зберегти")
             }
         },
         dismissButton = {

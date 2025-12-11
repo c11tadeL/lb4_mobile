@@ -7,21 +7,24 @@ import androidx.room.RoomDatabase
 import androidx.sqlite.db.SupportSQLiteDatabase
 import com.example.lb4.data.dao.CategoryDao
 import com.example.lb4.data.dao.ProductDao
+import com.example.lb4.data.dao.PromotionDao
 import com.example.lb4.data.model.CategoryEntity
 import com.example.lb4.data.model.ProductEntity
+import com.example.lb4.data.model.PromotionEntity
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
 @Database(
-    entities = [CategoryEntity::class, ProductEntity::class],
-    version = 1,
+    entities = [CategoryEntity::class, ProductEntity::class, PromotionEntity::class],
+    version = 3,
     exportSchema = false
 )
 abstract class AppDatabase : RoomDatabase() {
 
     abstract fun categoryDao(): CategoryDao
     abstract fun productDao(): ProductDao
+    abstract fun promotionDao(): PromotionDao
 
     companion object {
         @Volatile
@@ -34,6 +37,7 @@ abstract class AppDatabase : RoomDatabase() {
                     AppDatabase::class.java,
                     "product_database"
                 )
+                    .fallbackToDestructiveMigration()
                     .addCallback(DatabaseCallback())
                     .build()
                 INSTANCE = instance
@@ -47,22 +51,34 @@ abstract class AppDatabase : RoomDatabase() {
             super.onCreate(db)
             INSTANCE?.let { database ->
                 CoroutineScope(Dispatchers.IO).launch {
-                    populateDatabase(database.categoryDao(), database.productDao())
+                    populateDatabase(
+                        database.categoryDao(),
+                        database.productDao(),
+                        database.promotionDao()
+                    )
                 }
             }
         }
 
-        suspend fun populateDatabase(categoryDao: CategoryDao, productDao: ProductDao) {
+        suspend fun populateDatabase(
+            categoryDao: CategoryDao,
+            productDao: ProductDao,
+            promotionDao: PromotionDao
+        ) {
+            // Додаємо категорії
             val fruitId = categoryDao.insertCategory(
                 CategoryEntity(name = "Фрукти", icon = "🍎")
             ).toInt()
+
             val vegId = categoryDao.insertCategory(
                 CategoryEntity(name = "Овочі", icon = "🥕")
             ).toInt()
+
             val meatId = categoryDao.insertCategory(
                 CategoryEntity(name = "М'ясо", icon = "🍖")
             ).toInt()
 
+            // Додаємо продукти
             productDao.insertProducts(
                 listOf(
                     ProductEntity(name = "Яблуко", price = 25.0, emoji = "🍎", categoryId = fruitId),
@@ -73,6 +89,34 @@ abstract class AppDatabase : RoomDatabase() {
                     ProductEntity(name = "Помідор", price = 28.0, emoji = "🍅", categoryId = vegId),
                     ProductEntity(name = "Курка", price = 120.0, emoji = "🍗", categoryId = meatId),
                     ProductEntity(name = "Свинина", price = 150.0, emoji = "🥓", categoryId = meatId)
+                )
+            )
+
+            // Додаємо акції
+            promotionDao.insertPromotion(
+                PromotionEntity(
+                    title = "Літній розпродаж!",
+                    description = "Знижка на всі фрукти",
+                    discount = 15,
+                    emoji = "🔥"
+                )
+            )
+
+            promotionDao.insertPromotion(
+                PromotionEntity(
+                    title = "Акція тижня",
+                    description = "Овочі за пів ціни",
+                    discount = 50,
+                    emoji = "⭐"
+                )
+            )
+
+            promotionDao.insertPromotion(
+                PromotionEntity(
+                    title = "Бонус",
+                    description = "Купи 2 - отримай 1 у подарунок",
+                    discount = 33,
+                    emoji = "🎁"
                 )
             )
         }

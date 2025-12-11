@@ -15,7 +15,9 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import com.example.lb4.screens.HomeScreen
 import com.example.lb4.screens.ProductListScreen
+import com.example.lb4.screens.SettingsScreen
 
 enum class AppDestinations(
     val title: String,
@@ -73,17 +75,17 @@ fun NavigationHost(
 ) {
     NavHost(
         navController = navController,
-        startDestination = AppDestinations.PRODUCTS.route,
+        startDestination = AppDestinations.HOME.route,
         modifier = modifier
     ) {
         composable(AppDestinations.HOME.route) {
-            ProductListScreen()
+            HomeScreen()
         }
         composable(AppDestinations.PRODUCTS.route) {
             ProductListScreen()
         }
         composable(AppDestinations.SETTINGS.route) {
-            ProductListScreen()
+            SettingsScreen()
         }
     }
 }

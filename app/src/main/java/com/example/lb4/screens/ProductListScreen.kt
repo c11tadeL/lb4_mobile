@@ -3,7 +3,6 @@ package com.example.lb4.screens
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
@@ -15,39 +14,48 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.example.lb4.components.AddCategoryDialog
-import com.example.lb4.components.AddProductDialog
-import com.example.lb4.components.EditProductDialog
+import com.example.lb4.components.*
 import com.example.lb4.data.database.AppDatabase
-import com.example.lb4.data.model.CategoryEntity
-import com.example.lb4.data.model.ProductEntity
+import com.example.lb4.data.model.*
 import com.example.lb4.data.repository.ProductRepository
 import com.example.lb4.viewmodel.ProductViewModel
 import com.example.lb4.viewmodel.ProductViewModelFactory
-import com.example.lb4.components.CategoryItemWithActions
-import com.example.lb4.components.EditCategoryDialog
-
 
 @Composable
 fun ProductListScreen() {
     val context = LocalContext.current
     val database = remember { AppDatabase.getDatabase(context) }
-    val repository = remember { ProductRepository(database.categoryDao(), database.productDao()) }
+    val repository = remember {
+        ProductRepository(
+            database.categoryDao(),
+            database.productDao(),
+            database.promotionDao()
+        )
+    }
     val viewModel: ProductViewModel = viewModel(
         factory = ProductViewModelFactory(repository)
     )
 
-    val categoriesWithProducts by viewModel.categoriesWithProducts.collectAsState()
+    val listItems by viewModel.listItems.collectAsState()
     val allCategories by viewModel.allCategories.collectAsState()
 
     var showAddCategoryDialog by remember { mutableStateOf(false) }
     var showAddProductDialog by remember { mutableStateOf(false) }
+    var showAddPromotionDialog by remember { mutableStateOf(false) }
     var editingCategory by remember { mutableStateOf<CategoryEntity?>(null) }
     var editingProduct by remember { mutableStateOf<ProductEntity?>(null) }
+    var editingPromotion by remember { mutableStateOf<PromotionEntity?>(null) }
 
     Scaffold(
         floatingActionButton = {
             Column(horizontalAlignment = Alignment.End) {
+                FloatingActionButton(
+                    onClick = { showAddPromotionDialog = true },
+                    containerColor = MaterialTheme.colorScheme.tertiary
+                ) {
+                    Icon(Icons.Default.Add, "Додати акцію")
+                }
+                Spacer(modifier = Modifier.height(8.dp))
                 FloatingActionButton(
                     onClick = { showAddProductDialog = true },
                     containerColor = MaterialTheme.colorScheme.secondary
@@ -83,13 +91,13 @@ fun ProductListScreen() {
                 )
             }
 
-            if (categoriesWithProducts.isEmpty()) {
+            if (listItems.isEmpty()) {
                 Box(
                     modifier = Modifier.fillMaxSize(),
                     contentAlignment = Alignment.Center
                 ) {
                     Text(
-                        text = "Немає даних.\nДодайте категорію кнопкою внизу справа!",
+                        text = "Немає даних.\nДодайте категорію або акцію кнопкою внизу справа!",
                         style = MaterialTheme.typography.bodyLarge,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -97,16 +105,23 @@ fun ProductListScreen() {
             } else {
                 LazyColumn(
                     modifier = Modifier.fillMaxSize(),
-                    contentPadding = PaddingValues(vertical = 8.dp, horizontal = 0.dp)
+                    contentPadding = PaddingValues(vertical = 8.dp)
                 ) {
-                    items(categoriesWithProducts) { categoryWithProducts ->
-                        CategoryItemWithActions(
-                            categoryWithProducts = categoryWithProducts,
-                            onDeleteCategory = { viewModel.deleteCategory(it) },
-                            onEditCategory = { editingCategory = it },
-                            onDeleteProduct = { viewModel.deleteProduct(it) },
-                            onEditProduct = { editingProduct = it }
-                        )
+                    items(items = listItems, key = { it.id }) { listItem ->
+                        when (listItem) {
+                            is ListItem.PromotionItem -> PromotionCard(
+                                promotion = listItem.promotion,
+                                onDelete = { viewModel.deletePromotion(it) },
+                                onEdit = { editingPromotion = it }
+                            )
+                            is ListItem.CategoryHeader -> CategoryItemWithActions(
+                                categoryWithProducts = listItem.categoryWithProducts,
+                                onDeleteCategory = { viewModel.deleteCategory(it) },
+                                onEditCategory = { editingCategory = it },
+                                onDeleteProduct = { viewModel.deleteProduct(it) },
+                                onEditProduct = { editingProduct = it }
+                            )
+                        }
                     }
                 }
             }
@@ -134,6 +149,16 @@ fun ProductListScreen() {
         )
     }
 
+    if (showAddPromotionDialog) {
+        AddPromotionDialog(
+            onDismiss = { showAddPromotionDialog = false },
+            onConfirm = { title, description, discount, emoji ->
+                viewModel.addPromotion(title, description, discount, emoji)
+                showAddPromotionDialog = false
+            }
+        )
+    }
+
     editingCategory?.let { category ->
         EditCategoryDialog(
             category = category,
@@ -153,6 +178,17 @@ fun ProductListScreen() {
             onConfirm = { updatedProduct ->
                 viewModel.updateProduct(updatedProduct)
                 editingProduct = null
+            }
+        )
+    }
+
+    editingPromotion?.let { promotion ->
+        EditPromotionDialog(
+            promotion = promotion,
+            onDismiss = { editingPromotion = null },
+            onConfirm = { updatedPromotion ->
+                viewModel.updatePromotion(updatedPromotion)
+                editingPromotion = null
             }
         )
     }

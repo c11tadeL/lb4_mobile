@@ -3,9 +3,7 @@ package com.example.lb4.viewmodel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
-import com.example.lb4.data.model.CategoryEntity
-import com.example.lb4.data.model.CategoryWithProducts
-import com.example.lb4.data.model.ProductEntity
+import com.example.lb4.data.model.*
 import com.example.lb4.data.repository.ProductRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -19,6 +17,12 @@ class ProductViewModel(private val repository: ProductRepository) : ViewModel() 
 
     private val _allCategories = MutableStateFlow<List<CategoryEntity>>(emptyList())
     val allCategories: StateFlow<List<CategoryEntity>> = _allCategories.asStateFlow()
+
+    private val _listItems = MutableStateFlow<List<ListItem>>(emptyList())
+    val listItems: StateFlow<List<ListItem>> = _listItems.asStateFlow()
+
+    private val _promotions = MutableStateFlow<List<PromotionEntity>>(emptyList())
+    val promotions: StateFlow<List<PromotionEntity>> = _promotions.asStateFlow()
 
     init {
         loadData()
@@ -35,8 +39,17 @@ class ProductViewModel(private val repository: ProductRepository) : ViewModel() 
                 _allCategories.value = it
             }
         }
+        viewModelScope.launch {
+            repository.getListItems().collect {
+                _listItems.value = it
+            }
+        }
+        viewModelScope.launch {
+            repository.getAllPromotions().collect {
+                _promotions.value = it
+            }
+        }
     }
-
 
     fun addCategory(name: String, icon: String) {
         viewModelScope.launch {
@@ -78,6 +91,31 @@ class ProductViewModel(private val repository: ProductRepository) : ViewModel() 
     fun deleteProduct(product: ProductEntity) {
         viewModelScope.launch {
             repository.deleteProduct(product)
+        }
+    }
+
+    fun addPromotion(title: String, description: String, discount: Int, emoji: String) {
+        viewModelScope.launch {
+            repository.insertPromotion(
+                PromotionEntity(
+                    title = title,
+                    description = description,
+                    discount = discount,
+                    emoji = emoji
+                )
+            )
+        }
+    }
+
+    fun updatePromotion(promotion: PromotionEntity) {
+        viewModelScope.launch {
+            repository.updatePromotion(promotion)
+        }
+    }
+
+    fun deletePromotion(promotion: PromotionEntity) {
+        viewModelScope.launch {
+            repository.deletePromotion(promotion)
         }
     }
 }
