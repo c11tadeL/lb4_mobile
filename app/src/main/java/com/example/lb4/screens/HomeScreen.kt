@@ -6,6 +6,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 
 @Composable
@@ -18,7 +19,12 @@ fun HomeScreen() {
         verticalArrangement = Arrangement.Center
     ) {
         Text(
-            text = "🏠 Головна",
+            text = "🏠",
+            style = MaterialTheme.typography.displayLarge
+        )
+        Spacer(modifier = Modifier.height(16.dp))
+        Text(
+            text = "Головна",
             style = MaterialTheme.typography.displayMedium,
             fontWeight = FontWeight.Bold,
             color = MaterialTheme.colorScheme.primary
@@ -27,7 +33,8 @@ fun HomeScreen() {
         Text(
             text = "Ласкаво просимо до додатку магазину!",
             style = MaterialTheme.typography.bodyLarge,
-            color = MaterialTheme.colorScheme.onSurface
+            color = MaterialTheme.colorScheme.onSurface,
+            textAlign = TextAlign.Center
         )
         Spacer(modifier = Modifier.height(32.dp))
         Card(
@@ -36,7 +43,6 @@ fun HomeScreen() {
                 containerColor = MaterialTheme.colorScheme.secondaryContainer
             )
         ) {
-
         }
     }
 }

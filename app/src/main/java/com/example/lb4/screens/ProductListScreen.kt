@@ -15,23 +15,16 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.lb4.components.*
-import com.example.lb4.data.database.AppDatabase
 import com.example.lb4.data.model.*
-import com.example.lb4.data.repository.ProductRepository
+import com.example.lb4.utils.getShopApplication
 import com.example.lb4.viewmodel.ProductViewModel
 import com.example.lb4.viewmodel.ProductViewModelFactory
 
 @Composable
 fun ProductListScreen() {
     val context = LocalContext.current
-    val database = remember { AppDatabase.getDatabase(context) }
-    val repository = remember {
-        ProductRepository(
-            database.categoryDao(),
-            database.productDao(),
-            database.promotionDao()
-        )
-    }
+    val repository = context.getShopApplication().repository
+
     val viewModel: ProductViewModel = viewModel(
         factory = ProductViewModelFactory(repository)
     )
@@ -128,6 +121,7 @@ fun ProductListScreen() {
         }
     }
 
+    // Діалоги
     if (showAddCategoryDialog) {
         AddCategoryDialog(
             onDismiss = { showAddCategoryDialog = false },

@@ -65,7 +65,6 @@ abstract class AppDatabase : RoomDatabase() {
             productDao: ProductDao,
             promotionDao: PromotionDao
         ) {
-            // Додаємо категорії
             val fruitId = categoryDao.insertCategory(
                 CategoryEntity(name = "Фрукти", icon = "🍎")
             ).toInt()
@@ -78,7 +77,6 @@ abstract class AppDatabase : RoomDatabase() {
                 CategoryEntity(name = "М'ясо", icon = "🍖")
             ).toInt()
 
-            // Додаємо продукти
             productDao.insertProducts(
                 listOf(
                     ProductEntity(name = "Яблуко", price = 25.0, emoji = "🍎", categoryId = fruitId),
